@@ -8,10 +8,14 @@ let offset = 0;
 let random = false;
 let imgCount = 0;
 let imgs = [];
+let requested = false;
 
 let searchFoo = function(){
     imgCount = 0;
     random = false;
+    if (query === ''){
+        query = 'anime';
+    }
     query = $("#search-term").val();
     
     $(".gallery").empty();
@@ -34,6 +38,9 @@ $("#search-button").click(() => {
 $("#random-button").click(() => {
     random = true;
     query = $("#search-term").val();
+    if (query === ''){
+        query = 'anime';
+    }
     $.ajax({
     url: `https://api.giphy.com/v1/gifs/search?q=${filterQuery(query)}&rating=pg&api_key=dc6zaTOxFJmzC&limit=1000`,
     method: "GET", 
@@ -67,6 +74,7 @@ function appendToPage(gif){
     imgs.push(gif);
     $gif.click(function(){
         let $it = $(this);
+        $("#modal-image").attr('src', imgs[$it.attr('id')].images.original.url);
         $('#deleteModal').modal();
         $('#modalYes').click(function(){
             $('#modalYes').off('click');
@@ -102,10 +110,10 @@ function render(gifs, random){
 }
 
 function appendMore(){
-    if (random === true){
+    if (random === true || requested === true){
         return;
     }
-    window.scrollBy(0, -50);
+    requested = true;
     offset += 25;
     $.ajax({
     url: `https://api.giphy.com/v1/gifs/search?q=${filterQuery(query)}&offset=${offset}&rating=pg&api_key=dc6zaTOxFJmzC`,
@@ -113,6 +121,9 @@ function appendMore(){
     success: (res) => {
         let gifs = res.data;
         render(gifs);
+        setTimeout(function(){
+            requested = false;
+        },2000);
     }
   });
 };
